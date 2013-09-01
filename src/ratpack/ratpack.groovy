@@ -10,30 +10,31 @@ import static org.ratpackframework.groovy.Template.groovyTemplate
 ratpack {
 
     modules {
-        register new ScriptExecutionModule()
+//        register new ScriptExecutionModule()
         register new Neo4jModule()
     }
 
     handlers {
-        get {
-            render groovyTemplate("skin.html", title: "Groovy Web Console")
-        }
+//        get {
+//            render groovyTemplate("skin.html", title: "Groovy Web Console")
+//        }
 
-        post("execute") { ScriptExecutor scriptExecutor ->
-            def script = request.form.script
-            render scriptExecutor.execute(script)
-        }
+//        post("execute") { ScriptExecutor scriptExecutor ->
+//            def script = request.form.script
+//            render scriptExecutor.execute(script)
+//        }
 
-        get("reloadexample") {
-            response.send new ReloadingThing().toString()
-        }
+//        get("reloadexample") {
+//            response.send new ReloadingThing().toString()
+//        }
 
-        get("cypher") { ExecutionEngine e ->
+//        get("cypher") { ExecutionEngine e ->
+        get { ExecutionEngine e ->
             getResponse().send e.execute("start n=node(*) return n").dumpToString()
 
         }
 
-        assets "public"
+//        assets "public"
 
     }
 

@@ -1,4 +1,6 @@
-This is an example Ratpack app, based on the latest ([Netty](http://netty.io)-powered) version. It is a subset port of the [Groovy Console](http://groovyconsole.appspot.com/).
+This is an example Ratpack app, based on the latest ([Netty](http://netty.io)-powered) version. It features Neo4j encapsulated in a Guice module.
+
+Rest of this document is copy & pasted from <https://github.com/ratpack/example-ratpack-gradle-groovy-app>.
 
 It is also using the Ratpack Gradle plugin as the development environment.
 
