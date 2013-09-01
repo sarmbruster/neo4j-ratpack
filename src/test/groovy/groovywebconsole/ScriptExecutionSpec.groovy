@@ -1,9 +1,9 @@
 package groovywebconsole
 
 import com.jayway.restassured.path.json.JsonPath
-import org.ratpackframework.test.ScriptAppSpec
+//import org.ratpackframework.test.ScriptAppSpec
 
-class ScriptExecutionSpec extends ScriptAppSpec {
+class ScriptExecutionSpec { // extends ScriptAppSpec {
 
     def "captures output"() {
         when:
