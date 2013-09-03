@@ -1,12 +1,7 @@
-import groovywebconsole.ReloadingThing
-import groovywebconsole.ScriptExecutionModule
-import groovywebconsole.ScriptExecutor
-import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.ratpack.CypherHandler
 import org.neo4j.ratpack.Neo4jModule
 
 import static org.ratpackframework.groovy.RatpackScript.ratpack
-import static org.ratpackframework.groovy.Template.groovyTemplate
 
 ratpack {
 
@@ -29,18 +24,9 @@ ratpack {
 //            response.send new ReloadingThing().toString()
 //        }
 
-//        get("cypher") { ExecutionEngine e ->
 
-        get registry.get(CypherHandler)
-
-        /*get { ExecutionEngine e ->
-            getResponse().send e.execute("start n=node(*) return n").dumpToString()
-
-        }
-
-        get("json") {
-            render abc:"def"
-        }*/
+        // register handler based on path and all methods
+        handler "", registry.get(CypherHandler)
 
 //        assets "public"
 
