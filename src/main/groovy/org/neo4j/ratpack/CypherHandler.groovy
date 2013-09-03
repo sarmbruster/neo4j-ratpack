@@ -44,8 +44,8 @@ class CypherHandler implements Handler {
                         }
                         break
                     case GET.name():
-                        cypher = request.queryParams["cypher"]
-                        params = request.queryParams.findAll {k,v -> k!="cypher"}
+                        cypher = request.queryParams["query"]
+                        params = request.queryParams.findAll {k,v -> k!="query"}
                         break
                     default:
                         throw new IllegalArgumentException("cypher not allowed with http method $request.method.name")
