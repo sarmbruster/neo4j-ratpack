@@ -1,6 +1,40 @@
-This is an example Ratpack app, based on the latest ([Netty](http://netty.io)-powered) version. It features Neo4j encapsulated in a Guice module.
+This is a PoC (Proof of Concept) like small project to integrate [Neo4j](http://www.neo4j.org) with [Ratpack](http://www.ratpack-framework.org). <https://github.com/ratpack/example-ratpack-gradle-groovy-app> acts as a template for this project.
 
-Rest of this document is copy & pasted from <https://github.com/ratpack/example-ratpack-gradle-groovy-app>.
+The primary goal is allow remote access to Neo4j via (Cypher)[http://docs.neo4j.org/chunked/stable/cypher-query-lang.html].
+
+## Features
+
+The list below is a list of features, planned stuff is in parenthesis.
+
+* execute Cypher via HTTP POST and GET
+* support parameterized Cypher
+* (transactional Cypher Endpoint)
+* (use [message pack](http://msgpack.org/) optionally as serialization format)
+* (provide multiple output formats e.g. JSON, XML, CSV)
+* (provide a interface to cancel currently running cypher queries)
+
+
+### Configuration
+
+tbd
+
+### Cypher endpoint
+
+The regular, non-transactional Cypher endpoint can be accessed using the path `/cypher`. Access is either possible via HTTP GET OR POST.
+
+#### Cypher via HTTP GET
+
+When sending Cypher queries using GET, the URL parameter `query` needs to contain the Cypher query in url encoded way. All other URL parameters are used as Cypher parameters.
+
+example:
+
+```
+http://localhost:5050/cypher?query=start%20n%3Dnode(*)%20return%20n
+```
+
+
+Rest of this document is copy & pasted from <https://github.com/ratpack/example-ratpack-gradle-groovy-app>
+---
 
 It is also using the Ratpack Gradle plugin as the development environment.
 
