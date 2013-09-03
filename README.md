@@ -32,8 +32,14 @@ example:
 http://localhost:5050/cypher?query=start%20n%3Dnode(*)%20return%20n
 ```
 
+Result is rendered in JSON as outlined on (Neo4j REST API)[http://docs.neo4j.org/chunked/stable/rest-api-cypher.html].
+
+#### Cypher via HTTP POST
+
+Sending Cypher queries using HTTP POST works just like in the standard (Neo4j REST API)[http://docs.neo4j.org/chunked/stable/rest-api-cypher.html]
 
 Rest of this document is copy & pasted from <https://github.com/ratpack/example-ratpack-gradle-groovy-app>
+
 ---
 
 It is also using the Ratpack Gradle plugin as the development environment.
