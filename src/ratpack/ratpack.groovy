@@ -2,33 +2,24 @@ import org.neo4j.ratpack.CypherHandler
 import org.neo4j.ratpack.Neo4jModule
 
 import static org.ratpackframework.groovy.RatpackScript.ratpack
+import static org.ratpackframework.groovy.Template.groovyTemplate
+
 
 ratpack {
 
     modules {
-//        register new ScriptExecutionModule()
         register new Neo4jModule()
     }
 
     handlers {
-//        get {
-//            render groovyTemplate("skin.html", title: "Groovy Web Console")
-//        }
-
-//        post("execute") { ScriptExecutor scriptExecutor ->
-//            def script = request.form.script
-//            render scriptExecutor.execute(script)
-//        }
-
-//        get("reloadexample") {
-//            response.send new ReloadingThing().toString()
-//        }
-
+        get {
+            render groovyTemplate("index.html")
+        }
 
         // register handler based on path and all methods
-        handler "", registry.get(CypherHandler)
+        handler "cypher", registry.get(CypherHandler)
 
-//        assets "public"
+        assets "public"
 
     }
 
