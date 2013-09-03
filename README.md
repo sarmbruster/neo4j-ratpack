@@ -1,6 +1,6 @@
 This is a PoC (Proof of Concept) like small project to integrate [Neo4j](http://www.neo4j.org) with [Ratpack](http://www.ratpack-framework.org). <https://github.com/ratpack/example-ratpack-gradle-groovy-app> acts as a template for this project.
 
-The primary goal is allow remote access to Neo4j via (Cypher)[http://docs.neo4j.org/chunked/stable/cypher-query-lang.html].
+The primary goal is allow remote access to Neo4j via (Cypher)[http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html].
 
 ## Features
 
