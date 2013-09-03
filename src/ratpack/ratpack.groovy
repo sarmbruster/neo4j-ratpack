@@ -2,6 +2,7 @@ import groovywebconsole.ReloadingThing
 import groovywebconsole.ScriptExecutionModule
 import groovywebconsole.ScriptExecutor
 import org.neo4j.cypher.javacompat.ExecutionEngine
+import org.neo4j.ratpack.CypherHandler
 import org.neo4j.ratpack.Neo4jModule
 
 import static org.ratpackframework.groovy.RatpackScript.ratpack
@@ -29,10 +30,17 @@ ratpack {
 //        }
 
 //        get("cypher") { ExecutionEngine e ->
-        get { ExecutionEngine e ->
+
+        get registry.get(CypherHandler)
+
+        /*get { ExecutionEngine e ->
             getResponse().send e.execute("start n=node(*) return n").dumpToString()
 
         }
+
+        get("json") {
+            render abc:"def"
+        }*/
 
 //        assets "public"
 
