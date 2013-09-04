@@ -51,7 +51,7 @@ class CypherHandler implements Handler {
                         throw new IllegalArgumentException("cypher not allowed with http method $request.method.name")
                 }
 
-                assert cypher, "now cypher string passed in"
+                assert cypher, "no cypher string passed in"
                 ExecutionResult result = executionEngine.execute(cypher, params?:Collections.emptyMap())
 
                 respond byContent.json {
