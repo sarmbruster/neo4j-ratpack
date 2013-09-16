@@ -46,6 +46,7 @@ dependencies {
 
     compile "org.neo4j:neo4j-kernel:${project.neo4j_version}"
     compile "org.neo4j:neo4j-cypher:${project.neo4j_version}"
+    compile 'com.google.code.gson:gson:2.2.4'
 
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 }

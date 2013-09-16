@@ -1,7 +1,8 @@
 package org.neo4j.ratpack
 
+import com.google.gson.Gson
 import com.google.inject.Inject
-import groovy.json.JsonSlurper
+
 import static io.netty.handler.codec.http.HttpMethod.*
 import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.cypher.javacompat.ExecutionResult
@@ -11,13 +12,11 @@ import org.neo4j.helpers.collection.IteratorUtil
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
 
-import static groovy.json.JsonOutput.toJson
-
 class CypherHandler implements Handler {
 
     private final GraphDatabaseService graphDatabaseService
     private final ExecutionEngine executionEngine
-    private final jsonSlurper = new JsonSlurper()
+    private final Gson gson = new Gson();
 
     @Inject
     CypherHandler(ExecutionEngine executionEngine, GraphDatabaseService graphDatabaseService) {
@@ -37,11 +36,9 @@ class CypherHandler implements Handler {
                 Map<String, Object> params
                 switch (request.method.name) {
                     case POST.name():
-                        request.inputStream.withReader { reader ->
-                            def result = jsonSlurper.parse(reader)
-                            cypher = result.query
-                            params = result.params
-                        }
+                        Map parsedJson = gson.fromJson(new InputStreamReader(request.inputStream), Map)
+                        cypher = parsedJson.get("query")
+                        params = parsedJson.get("params")
                         break
                     case GET.name():
                         cypher = request.queryParams["query"]
@@ -55,10 +52,20 @@ class CypherHandler implements Handler {
                 ExecutionResult result = executionEngine.execute(cypher, params?:Collections.emptyMap())
 
                 respond byContent.json {
-                    response.send toJson([columns: result.columns(), data: IteratorUtil.asCollection(result)]) // TODO: streaming
+                    response.send gson.toJson([columns: result.columns(), data: IteratorUtil.asCollection(result)])
+                    //  response.send toJson([columns: result.columns(), data: IteratorUtil.asCollection(result)]) // TODO: streaming
+                }.html {
+
+                }.xml {
+
+                }.plainText {
+
+                }.type("text/csv") {
+
                 }
             }
             tx.success()
+
         } finally {
             tx.finish()
         }
