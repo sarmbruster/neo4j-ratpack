@@ -2,23 +2,23 @@ package org.neo4j.ratpack
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.TypeAdapter
-import com.google.gson.TypeAdapterFactory
-import com.google.gson.reflect.TypeToken
 import com.google.inject.Inject
-import org.neo4j.graphdb.Relationship
-import org.neo4j.graphdb.Node
-import org.neo4j.ratpack.gson.ExecutionResultSerializer
-import org.neo4j.ratpack.gson.NodeSerializer
-import org.neo4j.ratpack.gson.RelationshipSerializer
-
-import static io.netty.handler.codec.http.HttpMethod.*
 import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.cypher.javacompat.ExecutionResult
 import org.neo4j.graphdb.GraphDatabaseService
+import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.Transaction
+import org.neo4j.helpers.collection.IteratorUtil
+import org.neo4j.ratpack.gson.ExecutionResultSerializer
+import org.neo4j.ratpack.gson.NodeSerializer
+import org.neo4j.ratpack.gson.RelationshipSerializer
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
+
+import static io.netty.handler.codec.http.HttpMethod.GET
+import static io.netty.handler.codec.http.HttpMethod.POST
+import static org.ratpackframework.groovy.Template.groovyTemplate
 
 class CypherHandler implements Handler {
 
@@ -70,22 +70,22 @@ class CypherHandler implements Handler {
                 ExecutionResult result = executionEngine.execute(cypher, params?:Collections.emptyMap())
 
                 respond byContent.json {
-                    try {
-                        def json = gson.toJson(result)
-                        response.send json //[columns: result.columns(), data: IteratorUtil.asCollection(result)])
-                    } catch (Exception e) {
-                        throw e
-                    }
+                    response.send gson.toJson(result) //[columns: result.columns(), data: IteratorUtil.asCollection(result)])
                     //  response.send toJson([columns: result.columns(), data: IteratorUtil.asCollection(result)]) // TODO: streaming
-                }/*.html {
-
-                }.xml {
-
+                }.html {
+                    render groovyTemplate("cypherResult.html", cypher:cypher, columns: result.columns(), data: IteratorUtil.asCollection(result) )
                 }.plainText {
-
+                    response.send result.dumpToString()
                 }.type("text/csv") {
-
-                } */
+                    StringBuilder sb = new StringBuilder()
+                    sb.append result.columns().join(",")
+                    sb.append "\n"
+                    for (row in result) {
+                        sb.append result.columns().collect { row[it]}.join(",")
+                        sb.append "\n"
+                    }
+                    response.send sb.toString()
+                }
             }
             tx.success()
 
