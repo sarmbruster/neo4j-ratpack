@@ -3,6 +3,7 @@ package org.neo4j.ratpack
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.inject.Inject
+import org.msgpack.MessagePack
 import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.cypher.javacompat.ExecutionResult
 import org.neo4j.graphdb.GraphDatabaseService
@@ -10,9 +11,11 @@ import org.neo4j.graphdb.Node
 import org.neo4j.graphdb.Relationship
 import org.neo4j.graphdb.Transaction
 import org.neo4j.helpers.collection.IteratorUtil
+import org.neo4j.kernel.impl.core.NodeProxy
 import org.neo4j.ratpack.gson.ExecutionResultSerializer
 import org.neo4j.ratpack.gson.NodeSerializer
 import org.neo4j.ratpack.gson.RelationshipSerializer
+import org.neo4j.ratpack.msgpack.NodeTemplate
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
 
@@ -35,11 +38,14 @@ class CypherHandler implements Handler {
         }
     })*/
         .create()
+    private final MessagePack messagePack
 
     @Inject
     CypherHandler(ExecutionEngine executionEngine, GraphDatabaseService graphDatabaseService) {
         this.executionEngine = executionEngine
         this.graphDatabaseService = graphDatabaseService
+        messagePack = new MessagePack()
+        messagePack.register(NodeProxy, new NodeTemplate())
     }
 
     @Override
@@ -91,6 +97,13 @@ class CypherHandler implements Handler {
                         sb.append "\n"
                     }
                     response.send sb.toString()
+                }.type("application/x-msgpack") {
+                    try {
+                    def packed = messagePack.write columns: result.columns(), data: IteratorUtil.asCollection(result)
+                    response.send packed
+                    } catch (Exception e) {
+                        throw e
+                    }
                 }
             }
             tx.success()
