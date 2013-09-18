@@ -65,12 +65,20 @@
     <div class="container theme-showcase">
 
       <div class="page-header">
-          <h2>Cypher result</h2>
+          <h4>Cypher statement</h4>
       </div>
-      <p>
-          cypher statement: <code>${model.cypher}</code>
-      </p>
-      <table class="table table-striped table-bordered table-hover">
+        <form method="post" action="cypher">
+            <div>
+                <textarea cols="120" rows="${model.cypher.split('\n').length}" name="query">${model.cypher}</textarea>
+            </div>
+            <div>
+                <input type="submit"/>
+            </div>
+
+        </form>
+
+        <h4>result</h4>
+        <table class="table table-striped table-bordered table-hover">
           <thead>
 
           <tr>

@@ -51,12 +51,18 @@ class CypherHandler implements Handler {
             context.with {
 
                 String cypher
-                Map<String, Object> params
+                Map<String, Object> params = Collections.emptyMap()
                 switch (request.method.name) {
                     case POST.name():
-                        Map parsedJson = gson.fromJson(new InputStreamReader(request.inputStream), Map)
-                        cypher = parsedJson.get("query")
-                        params = parsedJson.get("params")
+                        switch (request.contentType) {
+                            case "application/x-www-form-urlencoded":
+                                cypher = URLDecoder.decode(request.form.query, "UTF-8")
+                                break
+                            default:
+                                Map parsedJson = gson.fromJson(new InputStreamReader(request.inputStream), Map)
+                                cypher = parsedJson.get("query")
+                                params = parsedJson.get("params")
+                        }
                         break
                     case GET.name():
                         cypher = request.queryParams["query"]
