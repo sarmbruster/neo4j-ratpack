@@ -61,15 +61,21 @@ class CypherHandler implements Handler {
 
             context.with {
                 def (cypher, params) = parseCypherAndParamsFrom(request)
-                String queryKey = queryRegistry.registerQuery(cypher)
-                try {
-                    ExecutionResult result = executionEngine.execute(cypher, params ?: Collections.emptyMap())
+                if (cypher) {
+                    String queryKey = queryRegistry.registerQuery(cypher)
+                    try {
+                        ExecutionResult result = executionEngine.execute(cypher, params ?: Collections.emptyMap())
 
-                    def respondWithClone = respondWith.clone() // for thread safety
-                    respondWithClone.delegate = delegate
-                    respondWithClone result, cypher
-                } finally {
-                    queryRegistry.unregisterQuery(queryKey)
+                        def respondWithClone = respondWith.clone() // for thread safety
+                        respondWithClone.delegate = delegate
+                        respondWithClone result, cypher
+                    } finally {
+                        queryRegistry.unregisterQuery(queryKey)
+                    }
+                } else {
+                    respond byContent.html {
+                        render groovyTemplate("cypherResult.html", cypher: '', columns: [], data: [])
+                    }
                 }
             }
             tx.success()
@@ -102,8 +108,6 @@ class CypherHandler implements Handler {
             default:
                 throw new IllegalArgumentException("cypher not allowed with http method $request.method.name")
         }
-
-        assert cypher, "no cypher string passed in"
         [cypher, params]
     }
 
