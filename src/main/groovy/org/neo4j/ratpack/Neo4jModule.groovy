@@ -6,6 +6,7 @@ import com.google.inject.Singleton
 import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
+import org.neo4j.test.TestGraphDatabaseFactory
 import org.ratpackframework.launch.LaunchConfig
 
 class Neo4jModule extends AbstractModule {
@@ -32,8 +33,22 @@ class Neo4jModule extends AbstractModule {
     @Singleton
     GraphDatabaseService provideGraphDatabaseService(LaunchConfig launchConfig) {
         if (!graphDatabaseService) {
-            String storeDir = launchConfig.getOther("neo4j.storeDir", "..${File.separator}..${File.separator}build${File.separator}data")
-            graphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabase(storeDir)
+
+            def neo4jType = launchConfig.getOther("neo4j.type", "test")
+            switch (neo4jType) {
+                case "test":
+                    graphDatabaseService = new TestGraphDatabaseFactory().newImpermanentDatabase()
+                    break
+                case "embedded":
+                    String storeDir = launchConfig.getOther("neo4j.storeDir", "..${File.separator}..${File.separator}build${File.separator}data")
+                    graphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir).loadPropertiesFromFile("neo4j.properties").newGraphDatabase()
+                    break
+                case "ha":
+                    throw new IllegalArgumentException("neo4j.type=ha not yet implemented")
+                    break
+                default:
+                    throw new IllegalArgumentException("invalid neo4j.type=$neo4jType")
+            }
             addShutdownHook {
                 graphDatabaseService.shutdown()
             }
