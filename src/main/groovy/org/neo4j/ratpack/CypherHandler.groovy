@@ -3,6 +3,7 @@ package org.neo4j.ratpack
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.inject.Inject
+import groovy.transform.CompileStatic
 import org.msgpack.MessagePack
 import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.cypher.javacompat.ExecutionResult
@@ -18,6 +19,7 @@ import org.neo4j.ratpack.gson.RelationshipSerializer
 import org.neo4j.ratpack.msgpack.NodeTemplate
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
+import org.ratpackframework.http.Request
 
 import static io.netty.handler.codec.http.HttpMethod.GET
 import static io.netty.handler.codec.http.HttpMethod.POST
@@ -27,6 +29,8 @@ class CypherHandler implements Handler {
 
     private final GraphDatabaseService graphDatabaseService
     private final ExecutionEngine executionEngine
+    private final QueryRegistry queryRegistry
+
     private final Gson gson = new GsonBuilder()
         .registerTypeAdapter(ExecutionResult, new ExecutionResultSerializer())
         .registerTypeHierarchyAdapter(Node, new NodeSerializer())
@@ -41,9 +45,10 @@ class CypherHandler implements Handler {
     private final MessagePack messagePack
 
     @Inject
-    CypherHandler(ExecutionEngine executionEngine, GraphDatabaseService graphDatabaseService) {
+    CypherHandler(ExecutionEngine executionEngine, GraphDatabaseService graphDatabaseService, QueryRegistry queryRegistry) {
         this.executionEngine = executionEngine
         this.graphDatabaseService = graphDatabaseService
+        this.queryRegistry = queryRegistry
         messagePack = new MessagePack()
         messagePack.register(NodeProxy, new NodeTemplate())
     }
@@ -55,61 +60,75 @@ class CypherHandler implements Handler {
         try {
 
             context.with {
+                def (cypher, params) = parseCypherAndParamsFrom(request)
+                String queryKey = queryRegistry.registerQuery(cypher)
+                try {
+                    ExecutionResult result = executionEngine.execute(cypher, params ?: Collections.emptyMap())
 
-                String cypher
-                Map<String, Object> params = Collections.emptyMap()
-                switch (request.method.name) {
-                    case POST.name():
-                        switch (request.contentType) {
-                            case "application/x-www-form-urlencoded":
-                                cypher = URLDecoder.decode(request.form.query, "UTF-8")
-                                break
-                            default:
-                                Map parsedJson = gson.fromJson(new InputStreamReader(request.inputStream), Map)
-                                cypher = parsedJson.get("query")
-                                params = parsedJson.get("params")
-                        }
-                        break
-                    case GET.name():
-                        cypher = request.queryParams["query"]
-                        params = request.queryParams.findAll {k,v -> k!="query"}
-                        break
-                    default:
-                        throw new IllegalArgumentException("cypher not allowed with http method $request.method.name")
-                }
-
-                assert cypher, "no cypher string passed in"
-                ExecutionResult result = executionEngine.execute(cypher, params?:Collections.emptyMap())
-
-                respond byContent.json {
-                    response.send gson.toJson(result) //[columns: result.columns(), data: IteratorUtil.asCollection(result)])
-                    //  response.send toJson([columns: result.columns(), data: IteratorUtil.asCollection(result)]) // TODO: streaming
-                }.html {
-                    render groovyTemplate("cypherResult.html", cypher:cypher, columns: result.columns(), data: IteratorUtil.asCollection(result) )
-                }.plainText {
-                    response.send result.dumpToString()
-                }.type("text/csv") {
-                    StringBuilder sb = new StringBuilder()
-                    sb.append result.columns().join(",")
-                    sb.append "\n"
-                    for (row in result) {
-                        sb.append result.columns().collect { row[it]}.join(",")
-                        sb.append "\n"
-                    }
-                    response.send sb.toString()
-                }.type("application/x-msgpack") {
-                    try {
-                    def packed = messagePack.write columns: result.columns(), data: IteratorUtil.asCollection(result)
-                    response.send packed
-                    } catch (Exception e) {
-                        throw e
-                    }
+                    def respondWithClone = respondWith.clone() // for thread safety
+                    respondWithClone.delegate = delegate
+                    respondWithClone result, cypher
+                } finally {
+                    queryRegistry.unregisterQuery(queryKey)
                 }
             }
             tx.success()
 
         } finally {
             tx.finish()
+        }
+    }
+
+    @CompileStatic
+    def parseCypherAndParamsFrom(Request request) {
+        String cypher
+        Map<String, Object> params = Collections.emptyMap()
+        switch (request.method.name) {
+            case POST.name():
+                switch (request.contentType) {
+                    case "application/x-www-form-urlencoded":
+                        cypher = URLDecoder.decode(request.form.query, "UTF-8")
+                        break
+                    default:
+                        Map parsedJson = gson.fromJson(new InputStreamReader(request.inputStream), Map)
+                        cypher = parsedJson.get("query")
+                        params = parsedJson.get("params") as Map<String, Object>
+                }
+                break
+            case GET.name():
+                cypher = request.queryParams["query"]
+                params = request.queryParams.findAll { k, v -> k != "query" } as Map<String, Object>
+                break
+            default:
+                throw new IllegalArgumentException("cypher not allowed with http method $request.method.name")
+        }
+
+        assert cypher, "no cypher string passed in"
+        [cypher, params]
+    }
+
+    /**
+     * render response of a cypher query depending on accept header
+     */
+    def respondWith = { result, cypher ->
+        respond byContent.json {
+            response.send gson.toJson(result) //[columns: result.columns(), data: IteratorUtil.asCollection(result)])
+            //  response.send toJson([columns: result.columns(), data: IteratorUtil.asCollection(result)]) // TODO: streaming
+        }.html {
+            render groovyTemplate("cypherResult.html", cypher: cypher, columns: result.columns(), data: IteratorUtil.asCollection(result))
+        }.plainText {
+            response.send result.dumpToString()
+        }.type("text/csv") {
+            StringBuilder sb = new StringBuilder()
+            sb.append result.columns().join(",")
+            sb.append "\n"
+            for (row in result) {
+                sb.append result.columns().collect { row[it] }.join(",")
+                sb.append "\n"
+            }
+            response.send sb.toString()
+        }.type("application/x-msgpack") {
+            response.send messagePack.write(columns: result.columns(), data: org.neo4j.helpers.collection.IteratorUtil.asCollection(result),)
         }
     }
 }

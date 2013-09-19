@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<% render "_head.html" %>
+
+<body>
+<% render "_navbar.html" %>
+
+<div class="container theme-showcase">
+
+    <div class="page-header">
+        <h4>List of currently running queries (${model.runningQueries.size()})</h4>
+    </div>
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+        <tr>
+            <th>started</th>
+            <th>thread</th>
+            <th>query</th>
+            <th>key</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% model.runningQueries.each { key, queryMapEntry -> %>
+        <tr>
+            <td>${queryMapEntry.started}</td>
+            <td>${queryMapEntry.thread}</td>
+            <td>${queryMapEntry.cypher}</td>
+            <td><a href="runningQueries?key=${key}" class="btn btn-danger btn-large">Terminate</a></td>
+        </tr>
+        <%}%>
+        </tbody>
+    </table>
+
+</div>
+<!-- /container -->
+
+<% render "_footer.html" %>
+</body>
+</html>
