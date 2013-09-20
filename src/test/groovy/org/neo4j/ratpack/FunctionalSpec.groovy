@@ -105,5 +105,9 @@ class FunctionalSpec extends Specification {
         response.statusCode == 200
         json.get().size() == 1
         json.get()[0].cypher == cypher
+
+        cleanup:
+        GroovySystem.metaClassRegistry.removeMetaClass(CypherHandler.class)
     }
+
 }
