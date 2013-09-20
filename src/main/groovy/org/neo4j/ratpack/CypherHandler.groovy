@@ -64,7 +64,7 @@ class CypherHandler implements Handler {
                 if (cypher) {
                     String queryKey = queryRegistry.registerQuery(cypher)
                     try {
-                        ExecutionResult result = executionEngine.execute(cypher, params ?: Collections.emptyMap())
+                        ExecutionResult result = executeQuery(cypher, params)
 
                         def respondWithClone = respondWith.clone() // for thread safety
                         respondWithClone.delegate = delegate
@@ -83,6 +83,11 @@ class CypherHandler implements Handler {
         } finally {
             tx.finish()
         }
+    }
+
+    @CompileStatic
+    private ExecutionResult executeQuery(String cypher, Map<String,Object> params) {
+        executionEngine.execute(cypher, params ?: ( Map<String,Object>)Collections.emptyMap())
     }
 
     @CompileStatic

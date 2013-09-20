@@ -77,7 +77,33 @@ class FunctionalSpec extends Specification {
         msgPack[columns][0].string == "n"
         msgPack[data].size() == 1
         msgPack[data][0][n][id].int == 0
-
     }
 
+    def "verify list of running queries"() {
+        setup:
+        def oldExecuteQuery = CypherHandler.metaClass.getMetaMethod("executeQuery", [String, Map] as Class[])
+        CypherHandler.metaClass.executeQuery = { String cypher, Map<String,Object> params ->
+            sleep 60*1000
+            oldExecuteQuery(cypher, params)
+        }
+        def cypher = "start n=node(*) return n"
+
+        Thread.start {
+            def client = aut.httpClient()
+            client.resetRequest()
+            client.request.content query: cypher
+            client.post("cypher")
+        }
+        sleep 3000
+
+        when:
+        request.header("Accept", "application/json")
+        get("runningQueries")
+        def json = response.jsonPath()
+
+        then:
+        response.statusCode == 200
+        json.get().size() == 1
+        json.get()[0].cypher == cypher
+    }
 }
