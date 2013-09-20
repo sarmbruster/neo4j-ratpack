@@ -1,14 +1,16 @@
 package org.neo4j.ratpack
 
+import org.neo4j.kernel.guard.Guard
+import org.neo4j.kernel.guard.GuardException
 import org.ratpackframework.session.internal.DefaultSessionIdGenerator
 import spock.lang.Specification
 
 class QueryRegistrySpec extends Specification {
 
     QueryRegistry registry
-    def setup() {
-        registry = new QueryRegistry(new DefaultSessionIdGenerator())
 
+    def setup() {
+        registry = new QueryRegistry(new DefaultSessionIdGenerator(), new Guard(null))
     }
 
     def "registering queries fills up registry"() {
@@ -80,6 +82,33 @@ class QueryRegistrySpec extends Specification {
         registryEntry2 != null
         registryEntry1 != registryEntry2
         registryEntry2.started.time > registryEntry1.started.time
+    }
+
+    def "test aborting queries"() {
+        setup:
+        def cypher = "start n=node(*) return n"
+
+        when:
+        def key = registry.registerQuery(cypher)
+        registry.runningQueries[key].vetoGuard.check()
+
+        then: "guard check succeeds"
+        registry.guard.currentGuard() != null
+        notThrown GuardException
+
+        when:
+        def queryMapEntry = registry.abortQuery(key)
+        queryMapEntry.vetoGuard.check()
+
+        then:
+        registry.guard.currentGuard() != null
+        thrown GuardException
+
+        when:
+        registry.unregisterQuery(key)
+
+        then:
+        registry.guard.currentGuard() == null
     }
 
 }
