@@ -1,3 +1,5 @@
+[![Build Status](https://secure.travis-ci.org/sarmbruster/neo4j-ratpack.png)](http://travis-ci.org/sarmbruster/neo4j-ratpack)
+
 This is a PoC (Proof of Concept) like small project to integrate [Neo4j](http://www.neo4j.org) with [Ratpack](http://www.ratpack-framework.org). <https://github.com/ratpack/example-ratpack-gradle-groovy-app> acts as a template for this project.
 
 The primary goal is allow remote access to Neo4j via (Cypher)[http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html].
@@ -38,7 +40,7 @@ Result is rendered in JSON as outlined on (Neo4j REST API)[http://docs.neo4j.org
 
 Sending Cypher queries using HTTP POST works just like in the standard (Neo4j REST API)[http://docs.neo4j.org/chunked/stable/rest-api-cypher.html]
 
----
+--
 
 Rest of this document is copy & pasted from <https://github.com/ratpack/example-ratpack-gradle-groovy-app>
 
