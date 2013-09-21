@@ -128,7 +128,7 @@ class FunctionalSpec extends Specification {
             client.request.content query: cypher
             client.post("cypher")
         }
-        sleep 2000
+        sleep 3000
 
         when:
         request.header("Accept", "text/html")
@@ -151,7 +151,7 @@ class FunctionalSpec extends Specification {
         response.body.asString() =~ /has been aborted/
 
         when: "verify that runningqueries does no longer have this query in the list"
-        sleep(50)
+        sleep(100)
         resetRequest()
         get("runningQueries")
         htmlParser = new XmlSlurper(new Parser()).parse(response.body.asInputStream())
