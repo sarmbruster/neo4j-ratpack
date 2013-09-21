@@ -23,23 +23,25 @@ ratpack {
 
         // handler for runningqueries in html and json
         get('runningQueries') { QueryRegistry queryRegistry ->
+            String flash = ''
             if (request.queryParams.key) {
-                // TODO: terminate query
+                def queryMapEntry = queryRegistry.abortQuery(request.queryParams.key)
+                if (queryMapEntry!=null) {
+                    flash = "query $queryMapEntry has been aborted."
+                }
             }
             respond byContent.html {
-                render groovyTemplate("runningQueries.html", runningQueries: queryRegistry.runningQueries)
+                render groovyTemplate("runningQueries.html", runningQueries: queryRegistry.runningQueries, flash:flash)
             }.json {
                 def listForJson = queryRegistry.runningQueries.collect { String key, QueryRegistry.QueryMapEntry value ->
-                    [key: key, thread: value.thread.id, started: value.started, cypher: value.cypher]
+                    [key: key, thread: value.thread.id, started: value.started, cypher: value.cypher ]
                 }
                 response.send toJson(listForJson)
             }
         }
 
         assets "public"
-
     }
-
 }
 
 
