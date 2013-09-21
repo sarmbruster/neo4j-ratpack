@@ -2,7 +2,7 @@
 
 This is a PoC (Proof of Concept) like small project to integrate [Neo4j](http://www.neo4j.org) with [Ratpack](http://www.ratpack-framework.org). <https://github.com/ratpack/example-ratpack-gradle-groovy-app> acts as a template for this project.
 
-The primary goal is allow remote access to Neo4j via (Cypher)[http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html].
+The primary goal is allow remote access to Neo4j via [Cypher](http://docs.neo4j.org/chunked/milestone/cypher-query-lang.html).
 
 ## Features
 
@@ -11,9 +11,9 @@ The list below is a list of features, planned stuff is in parenthesis.
 * execute Cypher via HTTP POST and GET
 * support parameterized Cypher
 * (transactional Cypher Endpoint)
-* (use [message pack](http://msgpack.org/) optionally as serialization format)
-* (provide multiple output formats e.g. JSON, XML, CSV)
-* (provide a interface to cancel currently running cypher queries)
+* use [message pack](http://msgpack.org/) optionally as serialization format
+* provide multiple output formats e.g. JSON, XML, CSV
+* provide a interface to cancel currently running cypher queries
 
 
 ### Configuration
@@ -34,11 +34,11 @@ example:
 http://localhost:5050/cypher?query=start%20n%3Dnode(*)%20return%20n
 ```
 
-Result is rendered in JSON as outlined on (Neo4j REST API)[http://docs.neo4j.org/chunked/stable/rest-api-cypher.html].
+Result is rendered in JSON as outlined on [Neo4j REST API](http://docs.neo4j.org/chunked/stable/rest-api-cypher.html).
 
 #### Cypher via HTTP POST
 
-Sending Cypher queries using HTTP POST works just like in the standard (Neo4j REST API)[http://docs.neo4j.org/chunked/stable/rest-api-cypher.html]
+Sending Cypher queries using HTTP POST works just like in the standard [Neo4j REST API](http://docs.neo4j.org/chunked/stable/rest-api-cypher.html)
 
 --
 
