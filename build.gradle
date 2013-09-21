@@ -50,6 +50,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
 
     testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
+    testCompile group:'org.ccil.cowan.tagsoup', name:'tagsoup', version:'1.2.1'
 }
 
 run {

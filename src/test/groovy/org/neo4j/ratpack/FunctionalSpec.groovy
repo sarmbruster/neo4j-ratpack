@@ -5,6 +5,7 @@ import org.msgpack.type.ValueFactory
 import org.ratpackframework.groovy.test.LocalScriptApplicationUnderTest
 import org.ratpackframework.groovy.test.TestHttpClient
 import spock.lang.Specification
+import org.ccil.cowan.tagsoup.Parser
 
 class FunctionalSpec extends Specification {
 
@@ -110,4 +111,57 @@ class FunctionalSpec extends Specification {
         GroovySystem.metaClassRegistry.removeMetaClass(CypherHandler.class)
     }
 
+    def "verify termination of running queries"() {
+        setup: "fake executeQuery to repeatedly read node 0 (this triggers the guard) and simulates a long running query"
+        def oldExecuteQuery = CypherHandler.metaClass.getMetaMethod("executeQuery", [String, Map] as Class[])
+        CypherHandler.metaClass.executeQuery = { String cypher, Map<String,Object> params ->
+            for (int i=0; i<600; i++) {
+                def n = delegate.graphDatabaseService.getNodeById(0)
+                sleep 100
+            }
+        }
+        def cypher = "start n=node(*) return n"
+
+        Thread.start {
+            def client = aut.httpClient()
+            client.resetRequest()
+            client.request.content query: cypher
+            client.post("cypher")
+        }
+        sleep 2000
+
+        when:
+        request.header("Accept", "text/html")
+        get("runningQueries")
+
+        def htmlParser = new XmlSlurper(new Parser()).parse(response.body.asInputStream())
+
+        then:
+        response.statusCode == 200
+        htmlParser.depthFirst().findAll { it.name() == 'tbody' }.size() == 1
+        htmlParser.depthFirst().findAll { it.name() == 'tbody' }[0].tr.size() == 1
+
+        when: "abort the query"
+        def terminateUrl = htmlParser.depthFirst().findAll { it.name() == 'tbody' }[0].tr[0].td[3].a.@href.text()
+        resetRequest()
+        get(terminateUrl)
+
+        then: "check if aborting succeeded"
+        response.statusCode == 200
+        response.body.asString() =~ /has been aborted/
+
+        when: "verify that runningqueries does no longer have this query in the list"
+        sleep(50)
+        resetRequest()
+        get("runningQueries")
+        htmlParser = new XmlSlurper(new Parser()).parse(response.body.asInputStream())
+
+        then:
+        response.statusCode == 200
+        htmlParser.depthFirst().findAll { it.name() == 'tbody' }.size() == 1
+        htmlParser.depthFirst().findAll { it.name() == 'tbody' }[0].tr.size() == 0
+
+        cleanup:
+        GroovySystem.metaClassRegistry.removeMetaClass(CypherHandler.class)
+    }
 }
