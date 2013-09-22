@@ -24,6 +24,7 @@
             <th>started</th>
             <th>thread</th>
             <th>query</th>
+            <th>abort flag</th>
             <th>key</th>
         </tr>
         </thead>
@@ -33,7 +34,8 @@
             <td>${queryMapEntry.started}</td>
             <td>${queryMapEntry.thread}</td>
             <td>${queryMapEntry.cypher}</td>
-            <td><a href="runningQueries?key=${key}" class="btn btn-danger btn-large">Terminate</a></td>
+            <td>${queryMapEntry.vetoGuard.abort}</td>
+            <td><% if (queryMapEntry.vetoGuard.abort==false) { %><a href="runningQueries?key=${key}" class="btn btn-danger btn-large">Terminate</a><% } %></td>
         </tr>
         <%}%>
         </tbody>
