@@ -51,7 +51,7 @@ class Neo4jModule extends AbstractModule {
 
                     GraphDatabaseBuilder builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
 
-                    File neo4jProperties = new File(launchConfig.baseDir, "neo4j.properties")
+                    File neo4jProperties = new File((File)launchConfig.baseDir, "neo4j.properties")
                     if (neo4jProperties.exists()) {
                         builder = builder.loadPropertiesFromFile(neo4jProperties.absolutePath)
                     }
