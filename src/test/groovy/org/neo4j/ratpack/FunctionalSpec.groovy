@@ -142,7 +142,12 @@ class FunctionalSpec extends Specification {
         htmlParser.depthFirst().findAll { it.name() == 'tbody' }[0].tr.size() == 1
 
         when: "abort the query"
-        def terminateUrl = htmlParser.depthFirst().findAll { it.name() == 'tbody' }[0].tr[0].td[3].a.@href.text()
+        def terminateUrl = htmlParser.depthFirst().findAll { it.name() == 'tbody' }[0].tr[0].td[4].a.@href.text()
+
+        then:
+        terminateUrl
+
+        when:
         resetRequest()
         get(terminateUrl)
 
