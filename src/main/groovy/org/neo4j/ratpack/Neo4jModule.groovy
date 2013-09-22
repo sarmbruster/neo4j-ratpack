@@ -5,6 +5,7 @@ import com.google.inject.Provides
 import com.google.inject.Singleton
 import org.neo4j.cypher.javacompat.ExecutionEngine
 import org.neo4j.graphdb.GraphDatabaseService
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.factory.GraphDatabaseSetting
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
@@ -47,8 +48,15 @@ class Neo4jModule extends AbstractModule {
                     break
                 case "embedded":
                     String storeDir = launchConfig.getOther("neo4j.storeDir", "..${File.separator}..${File.separator}build${File.separator}data")
-                    graphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
-                            .loadPropertiesFromFile("neo4j.properties")
+
+                    GraphDatabaseBuilder builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
+
+                    File neo4jProperties = new File(launchConfig.baseDir, "neo4j.properties")
+                    if (neo4jProperties.exists()) {
+                        builder = builder.loadPropertiesFromFile(neo4jProperties.absolutePath)
+                    }
+
+                    graphDatabaseService = builder
                             .setConfig(GraphDatabaseSettings.execution_guard_enabled, GraphDatabaseSetting.TRUE)
                             .newGraphDatabase()
                     break
