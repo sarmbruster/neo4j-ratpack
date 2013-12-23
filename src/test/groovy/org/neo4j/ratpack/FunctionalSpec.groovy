@@ -1,20 +1,23 @@
 package org.neo4j.ratpack
 
+import org.ccil.cowan.tagsoup.Parser
 import org.msgpack.MessagePack
 import org.msgpack.type.ValueFactory
-import org.ratpackframework.groovy.test.LocalScriptApplicationUnderTest
-import org.ratpackframework.groovy.test.TestHttpClient
+import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import ratpack.groovy.test.TestHttpClient
+import ratpack.groovy.test.TestHttpClients
 import spock.lang.Specification
-import org.ccil.cowan.tagsoup.Parser
 
 class FunctionalSpec extends Specification {
 
     def aut = new LocalScriptApplicationUnderTest()
-    @Delegate TestHttpClient client = aut.httpClient()
+
+    @Delegate
+    TestHttpClient client = TestHttpClients.testHttpClient(aut)
 
     def setupSpec() {
         String.metaClass.encodeURL = {
-           java.net.URLEncoder.encode(delegate, 'UTF-8')
+            java.net.URLEncoder.encode(delegate, 'UTF-8')
         }
     }
 
@@ -34,7 +37,7 @@ class FunctionalSpec extends Specification {
 
     def "cypher via HTTP GET works"() {
         when:
-        request.parameters query:"start n=node(*) return n".encodeURL()
+        request.parameters query: "start n=node(*) return n".encodeURL()
         get("cypher")
         def json = response.body.jsonPath()
 
@@ -48,7 +51,7 @@ class FunctionalSpec extends Specification {
 
     def "cypher via HTTP POST works"() {
         when: "send cypher in json as request body"
-        request.content query:"start n=node(*) return n"
+        request.contentType("application/json").content query: "start n=node(*) return n"
         post("cypher")
         def json = response.body.jsonPath()
 
@@ -62,7 +65,7 @@ class FunctionalSpec extends Specification {
 
     def "cypher result as msgpack works"() {
         when:
-        request.content query:"start n=node(*) return n"
+        request.contentType("application/json").content query: "start n=node(*) return n"
         request.header("Accept", "application/x-msgpack")
         post("cypher")
         def msgPack = new MessagePack().read(response.body.asInputStream())
@@ -83,21 +86,22 @@ class FunctionalSpec extends Specification {
     def "verify list of running queries"() {
         setup:
         def oldExecuteQuery = CypherHandler.metaClass.getMetaMethod("executeQuery", [String, Map] as Class[])
-        CypherHandler.metaClass.executeQuery = { String cypher, Map<String,Object> params ->
-            sleep 60*1000
+        CypherHandler.metaClass.executeQuery = { String cypher, Map<String, Object> params ->
+            sleep 60 * 1000
             oldExecuteQuery(cypher, params)
         }
         def cypher = "start n=node(*) return n"
 
         Thread.start {
-            def client = aut.httpClient()
+            def client = TestHttpClients.testHttpClient(aut)
             client.resetRequest()
-            client.request.content query: cypher
+            client.request.contentType("application/json").content query: cypher
             client.post("cypher")
         }
         sleep 3000
 
         when:
+        resetRequest()
         request.header("Accept", "application/json")
         get("runningQueries")
         def json = response.jsonPath()
@@ -114,8 +118,8 @@ class FunctionalSpec extends Specification {
     def "verify termination of running queries"() {
         setup: "fake executeQuery to repeatedly read node 0 (this triggers the guard) and simulates a long running query"
         def oldExecuteQuery = CypherHandler.metaClass.getMetaMethod("executeQuery", [String, Map] as Class[])
-        CypherHandler.metaClass.executeQuery = { String cypher, Map<String,Object> params ->
-            for (int i=0; i<600; i++) {
+        CypherHandler.metaClass.executeQuery = { String cypher, Map<String, Object> params ->
+            for (int i = 0; i < 600; i++) {
                 def n = delegate.graphDatabaseService.getNodeById(0)
                 sleep 100
             }
@@ -123,14 +127,15 @@ class FunctionalSpec extends Specification {
         def cypher = "start n=node(*) return n"
 
         Thread.start {
-            def client = aut.httpClient()
+            def client = TestHttpClients.testHttpClient(aut)
             client.resetRequest()
-            client.request.content query: cypher
+            client.request.contentType("application/json").content query: cypher
             client.post("cypher")
         }
         sleep 3000
 
         when:
+        resetRequest()
         request.header("Accept", "text/html")
         get("runningQueries")
 

@@ -12,7 +12,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.kernel.GraphDatabaseAPI
 import org.neo4j.kernel.guard.Guard
 import org.neo4j.test.TestGraphDatabaseFactory
-import org.ratpackframework.launch.LaunchConfig
+import ratpack.launch.LaunchConfig
 
 class Neo4jModule extends AbstractModule {
 
@@ -20,18 +20,7 @@ class Neo4jModule extends AbstractModule {
 
     @Override
     protected void configure() {
-
         bind(QueryRegistry).in(Singleton)
-        /*JsonOutput.metaClass.'static'.toJson = { Node node ->
-            def map = node.propertyKeys.collectEntries { [it, node.getProperty(it)]}
-            map.id = node.id
-            toJson map
-        }
-        JsonOutput.metaClass.'static'.toJson = { Relationship relationship ->
-            def map = relationship.propertyKeys.collectEntries { [it, relationship.getProperty(it)]}
-            map.id = relationship.id
-            toJson map
-        }*/
     }
 
     @Provides
