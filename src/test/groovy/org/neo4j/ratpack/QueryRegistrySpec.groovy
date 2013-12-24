@@ -2,7 +2,7 @@ package org.neo4j.ratpack
 
 import org.neo4j.kernel.guard.Guard
 import org.neo4j.kernel.guard.GuardException
-import org.ratpackframework.session.internal.DefaultSessionIdGenerator
+import ratpack.session.internal.DefaultSessionIdGenerator
 import spock.lang.Specification
 
 class QueryRegistrySpec extends Specification {

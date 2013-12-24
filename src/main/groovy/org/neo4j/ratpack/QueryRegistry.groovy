@@ -6,7 +6,7 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import groovy.util.logging.Log
 import org.neo4j.kernel.guard.Guard
-import org.ratpackframework.session.SessionIdGenerator
+import ratpack.session.SessionIdGenerator
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -50,7 +50,7 @@ class QueryRegistry {
         entry
     }
 
-    @EqualsAndHashCode //(includes = ["cypher", "started", "thread"])
+    @EqualsAndHashCode //(includes = ["query", "started", "thread"])
     @ToString
     static class QueryMapEntry {
         String cypher

@@ -15,7 +15,13 @@ class ExecutionResultSerializer implements JsonSerializer<ExecutionResult> {
 
         def result = new JsonObject()
         result.add("columns", context.serialize(executionResult.columns()))
-        result.add("data", context.serialize(IteratorUtil.asCollection(executionResult)))
+
+        def collection = IteratorUtil.asCollection(executionResult).collect {
+            it.collectEntries { [it.key, [id: it.value.id]] }
+        }
+
+        def serialize = context.serialize(collection)
+        result.add("data", serialize)
 
         return result
     }
